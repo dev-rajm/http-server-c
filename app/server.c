@@ -8,14 +8,11 @@
 #include <unistd.h>
 
 int main() {
-	// Disable output buffering
 	setbuf(stdout, NULL);
  	setbuf(stderr, NULL);
 
-	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	printf("Logs from your program will appear here!\n");
 
-	// Uncomment this block to pass the first stage
 	
 	int server_fd, client_addr_len;
 	struct sockaddr_in client_addr;
@@ -26,8 +23,6 @@ int main() {
 		return 1;
 	}
 	
-	// Since the tester restarts your program quite often, setting SO_REUSEADDR
-	// ensures that we don't run into 'Address already in use' errors
 	int reuse = 1;
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
 		printf("SO_REUSEADDR failed: %s \n", strerror(errno));
@@ -53,8 +48,16 @@ int main() {
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
 	
-	accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
+	int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
+	
+	if(client_fd == -1) {
+		printf("Accept failed: %s \n", strerror(errno));
+		return 1;
+	}
 	printf("Client connected\n");
+
+	char *response = "HTTP/1.1 200 OK\r\n\r\n";
+	send(client_fd, response, strlen(response), 0);
 	
 	close(server_fd);
 
