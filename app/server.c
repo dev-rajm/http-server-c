@@ -13,7 +13,6 @@ int main() {
 
 	printf("Logs from your program will appear here!\n");
 
-	
 	int server_fd, client_addr_len;
 	struct sockaddr_in client_addr;
 	
@@ -55,6 +54,15 @@ int main() {
 		return 1;
 	}
 	printf("Client connected\n");
+
+	char readbuffer[1024];
+	char path[512];
+	char byteReceived = recv(client_fd, readbuffer, sizeof(readbuffer), 0);
+
+	// Extract the path
+	char *reqPath = strtok(readbuffer, " ");
+
+	int bytesSent;
 
 	char *response = "HTTP/1.1 200 OK\r\n\r\n";
 	send(client_fd, response, strlen(response), 0);
