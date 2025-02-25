@@ -134,6 +134,7 @@ int main() {
 
 	// Extract the path using space as a delimiter
 	char *reqPath = strtok(readbuffer, " ");
+	reqPath = strtok(NULL, " ");
 
 	// Stored the value of send function returns
 	int bytesSent;
@@ -144,11 +145,11 @@ int main() {
 	 * else res404 for other paths
 	 */
 	if(strcmp(reqPath, "/") != 0) {
-		char *response = "HTTP/1.1 200 OK\r\n\r\n"; // 200
+		char *response = "HTTP/1.1 404 Not Found\r\n\r\n"; // 404
 		bytesSent = send(client_fd, response, strlen(response), 0);
 	}
 	else {
-		char *response = "HTTP/1.1 404 Not Found\r\n\r\n"; // 404
+		char *response = "HTTP/1.1 200 OK\r\n\r\n"; // 200
 		bytesSent = send(client_fd, response, strlen(response), 0);
 	}
 
