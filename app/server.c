@@ -134,23 +134,49 @@ int main() {
 
 	// Extract the path using space as a delimiter
 	char *reqPath = strtok(readbuffer, " ");
-	reqPath = strtok(NULL, " ");
+	reqPath = strtok(NULL, " "); // Get the second content from the path
+
+	// Create a duplicate copy of second content of path
+	char *reqPathCopy = strdup(reqPath);
+
+	// Extract the second content using "/" as a delimiter
+	char *mainPath = strtok(reqPathCopy, "/");
+	char *content = strtok(NULL, " "); // Get the text content from the last
 
 	// Stored the value of send function returns
 	int bytesSent;
 
 	/**
 	 * Compare the request path with the root path
-	 * Send the corresponding responses, if path is `/` send res200
-	 * else res404 for other paths
+	 * Send the corresponding response.
 	 */
-	if(strcmp(reqPath, "/") != 0) {
-		char *response = "HTTP/1.1 404 Not Found\r\n\r\n"; // 404
+	if(strcmp(reqPathCopy, "/") == 0) {
+		char *res = "HTTP/1.1 200 OK\r\n\r\n"; // 200
+		bytesSent = send(client_fd, res, strlen(res), 0);
+	}
+
+	/**
+	 * Compare the request path with the echo path
+	 * Get the content length
+	 * Store the response in the output buffer
+	 * Print response
+	 * Send the response to the clinet
+	 */
+	else if(strcmp(reqPathCopy, "/echo") == 0) {
+		int contentLength = strlen(content);
+		char response[512];
+		sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", 
+			contentLength, content);
+		printf("Sending Response: %s\n", response);
 		bytesSent = send(client_fd, response, strlen(response), 0);
 	}
+
+	/**
+	 * Response with 404 if any other path encountered
+	 */
 	else {
-		char *response = "HTTP/1.1 200 OK\r\n\r\n"; // 200
-		bytesSent = send(client_fd, response, strlen(response), 0);
+		char *res = "HTTP/1.1 404 Not Found\r\n\r\n"; // 404
+		bytesSent = send(client_fd, res, strlen(res), 0);
 	}
 
 	/**
