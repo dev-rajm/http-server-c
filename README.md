@@ -28,6 +28,7 @@ This repository contains a basic HTTP server implementation written in C. It dem
 - Simple socket-based server using `socket`, `bind`, `listen`, `accept`.
 - Demonstrates basic error handling.
 - SO_REUSEADDR implemented to prevent "Address already in use" errors.
+- Multi-threading or asynchronous I/O for handling multiple clients concurrently.
 
 ## Getting Started
 
@@ -129,7 +130,6 @@ curl -v --header "User-Agent: foobar/1.2.3" http://localhost:4221/user-agent
 - Implement support for other HTTP methods (POST, PUT, DELETE).
 - Add support for serving static files.
 - Improve error handling and logging.
-- Implement multi-threading or asynchronous I/O for handling multiple clients concurrently.
 - Add HTTPS support.
 - Add more robust header parsing.
 - Add configuration file support.
