@@ -77,6 +77,31 @@ void *handle_client(void *arg) {
 		bytesSent = send(client_fd, response, strlen(response), 0);
 	}
 
+	// Compare the request path with /files
+	else if(strcmp(reqPathCopy, "/files") == 0) {
+		printf("Filename: %s", content);
+		char *fileContent;
+		FILE *fptr;
+		char *dir = "./tmp/";
+		char *path = strcat(dir, content);
+		printf("File full path: %s", path);
+		fptr = fopen(path, "r");
+
+		if(fptr==NULL) {
+			char *res = "HTTP/1.1 404 Not Found\r\n\r\n";
+			bytesSent = send(client_fd, res, strlen(res), 0);
+		}
+		fgets(fileContent, 100, fptr);
+		size_t fileContentLength = strlen(fileContent);
+		char response[512];
+		sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %ld\r\n\r\n%s", 
+		fileContentLength, fileContent);
+		printf("Sending Response: %s\n", response);
+		bytesSent = send(client_fd, response, strlen(response), 0);
+
+		fclose(fptr);
+	}
+
 	// Response 404 for other endpoints
 	else {
 		char *res = "HTTP/1.1 404 Not Found\r\n\r\n";
