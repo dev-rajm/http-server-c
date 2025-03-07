@@ -24,11 +24,12 @@ This repository contains a basic HTTP server implementation written in C. It dem
 - Handles basic HTTP GET requests.
 - Parses HTTP headers (e.g., User-Agent).
 - Sends HTTP responses with status codes and content.
-- Supports `/`, `/echo` and `/user-agent` endpoints.
-- Simple socket-based server using `socket`, `bind`, `listen`, `accept`.
+- Supports `/`, `/echo`, `/user-agent`, `/files` endpoints.
+- Simple socket-based server using `socket`, `bind`, `listen`, `accept`, `send`.
 - Demonstrates basic error handling.
 - SO_REUSEADDR implemented to prevent "Address already in use" errors.
 - Multi-threading or asynchronous I/O for handling multiple clients concurrently.
+- Return a file content as a response
 
 ## Getting Started
 
@@ -48,7 +49,7 @@ This repository contains a basic HTTP server implementation written in C. It dem
 
 2. Compile the source code:
    ```bash
-   gcc /app/server.c
+   gcc -o server ./app/server.c
    ```
 
 ### Running the Server
@@ -56,10 +57,16 @@ This repository contains a basic HTTP server implementation written in C. It dem
 1. Execute the compiled binary:
 
    ```bash
-   ./a.out
+   ./server
    ```
 
 2. The server will start listening on port `4221`.
+
+3. Verify by sending a get request using `curl`:
+
+   ```bash
+   curl -v http://localhost:4221
+   ```
 
 ## Usage
 
@@ -68,6 +75,7 @@ This repository contains a basic HTTP server implementation written in C. It dem
     - Example: `http://localhost:4221/`
     - Example: `http://localhost:4221/echo/hello`
     - Example: `http://localhost:4221/user-agent`
+    - Example: `http://localhost:4221/files/foo`
 
 Example using curl:
 
@@ -75,6 +83,7 @@ Example using curl:
 curl -v http://localhost:4221/
 curl -v http://localhost:4221/echo/hello
 curl -v --header "User-Agent: foobar/1.2.3" http://localhost:4221/user-agent
+curl -v http://localhost:4221/files/foo
 ```
 
 ## Implementation Details
@@ -99,6 +108,7 @@ curl -v --header "User-Agent: foobar/1.2.3" http://localhost:4221/user-agent
 - `/`: Returns a simple 200 OK response.
 - `/echo/[content]`: Returns the content in the response body.
 - `/user-agent`: Returns the User-Agent header value in the response body.
+- `/files`: Return a file content as a response if file exists.
 - Any other path returns a 404 Not Found response.
 
 ### Error Handling
