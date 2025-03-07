@@ -79,27 +79,58 @@ void *handle_client(void *arg) {
 
 	// Compare the request path with /files
 	else if(strcmp(reqPathCopy, "/files") == 0) {
-		printf("Filename: %s", content);
-		char *fileContent;
-		FILE *fptr;
-		char *dir = "./tmp/";
-		char *path = strcat(dir, content);
-		printf("File full path: %s", path);
-		fptr = fopen(path, "r");
+		char filename[256];
+		char path[512];
+		strcat(path, reqPathCopy);
+		strcat(path, "/");
+		strcat(path, content);
+		if(sscanf(path, "/files/%255s", filename) == 1) {
+			char filepath[512];
+			snprintf(filepath, sizeof(filepath), "./tmp/%s", filename);
 
-		if(fptr==NULL) {
-			char *res = "HTTP/1.1 404 Not Found\r\n\r\n";
-			bytesSent = send(client_fd, res, strlen(res), 0);
+			FILE *fptr = fopen(filepath, "rb");
+			if(fptr==NULL) {
+				perror("fopen");
+				char *res = "HTTP/1.1 404 Not Found\r\n\r\n";
+				bytesSent = send(client_fd, res, strlen(res), 0);
+			}
+			else {
+				fseek(fptr, 0, SEEK_END);
+				long file_size = ftell(fptr);
+				fseek(fptr, 0, SEEK_SET);
+
+				char *file_content = malloc(file_size+1);
+				if(file_content==NULL) {
+					fclose(fptr);
+					char *res = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+					bytesSent = send(client_fd, res, strlen(res), 0);
+					return;
+				}
+				size_t bytes_read = fread(file_content, 1, file_size, fptr);
+				fclose(fptr);
+
+				if(bytes_read != file_size) {
+					free(file_content);
+					char *res = "HTTP/1.1 500 Internal Server Error\r\n\r\n";
+					bytesSent = send(client_fd, res, strlen(res), 0);
+					return;
+				}
+
+				file_content[file_size] = '\0';
+				char response[1024];
+				snprintf(response, sizeof(response), "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %ld\r\n\r\n", file_size);
+
+				bytesSent = send(client_fd, response, strlen(response), 0);
+				bytesSent = send(client_fd, file_content, file_size, 0);
+
+				free(file_content);
+			}
+		} 
+		else {
+			char *res = "HTTP/1.1 400 Bad Request\r\n\r\n";
+        	bytesSent = send(client_fd, res, strlen(res), 0);
 		}
-		fgets(fileContent, 100, fptr);
-		size_t fileContentLength = strlen(fileContent);
-		char response[512];
-		sprintf(response, "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %ld\r\n\r\n%s", 
-		fileContentLength, fileContent);
-		printf("Sending Response: %s\n", response);
-		bytesSent = send(client_fd, response, strlen(response), 0);
-
-		fclose(fptr);
+		
 	}
 
 	// Response 404 for other endpoints
